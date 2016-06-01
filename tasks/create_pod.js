@@ -2,9 +2,6 @@ var camelCase = require('camelcase');
 var callJenkins = require('../utils').callJenkins;
 
 module.exports = function (req, res) {
-  if (!req.query.text) {
-    return res.status(400).send('invalid parameters');
-  }
 
   var text = req.query.text.trim().split(' ');
   var branch = text[0];
