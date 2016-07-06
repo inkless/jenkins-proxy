@@ -1,31 +1,40 @@
-var camelCase = require('camelcase');
-var callJenkins = require('../utils').callJenkins;
+const camelCase = require('camelcase');
+const utils = require('../utils');
 
-module.exports = function (req, res) {
+module.exports = (req, res) => {
 
-  var text = req.query.text.trim().split(' ');
-  var branch = text[0];
-  var name = text[1];
+  const userId = req.query.user_id;
+  const user = utils.getUser(userId);
+  const creator = user.profile.email;
+  const text = req.query.text.trim().split(' ');
+  const branch = text[0];
+  const name = text[1] || camelCase(branch);
+  const price = parseFloat(text[2]) || 0.075;
 
-  if (!name) {
-    name = camelCase(branch);
+  if (price > 0.163) {
+    return res.status(200).send('Spot price should not be greater than .163');
   }
 
-  var qs = {
-    job: process.env.CREATE_POD_JOB,
-    token: process.env.CREATE_POD_TOKEN,
+  const qs = {
+    job: process.env.CREATE_POD_V2_JOB,
+    token: process.env.CREATE_POD_V2_TOKEN,
     pod_name: name,
-    deploy_git_branch: branch,
-    ansible_branch: 'master',
-    es_async_branch: 'master',
+    pod_creator: creator,
+    spot_instance: 'true',
+    spot_price: price,
+    your_git_branch: branch,
+    ansible_branch: 'chris/role/new_pods',
     cause: 'slack',
+    public_ip: '127.0.0.1',
+    private_dns: '127.0.0.1',
+    expires: 8,
   };
 
-  callJenkins(qs)
-    .then(function () {
+  utils.callJenkins(qs)
+    .then(() => {
       res.status(200).send('Create pod successful!');
     })
-    .catch(function (err) {
+    .catch(err => {
       return res.status(200).send('Create pod failed:' + err);
     });
 };
