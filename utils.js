@@ -1,14 +1,14 @@
-var request = require('request');
-var Promise = require('promise');
+const request = require('request');
+const slackUsers = require('./' + process.env.SLACK_USER_CACHE);
 
-var jenkinsUrl = 'https://build.symphonycommerce.com/ci/buildByToken/buildWithParameters';
+const jenkinsUrl = 'https://build.symphonycommerce.com/ci/buildByToken/buildWithParameters';
 
 function callJenkins(qs) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     request.get({
       url: jenkinsUrl,
-      qs: qs,
-    }, function (err, httpResponse, body) {
+      qs,
+    }, (err, httpResponse, body) => {
       if (err) {
         reject(err);
       } else {
@@ -18,6 +18,11 @@ function callJenkins(qs) {
   });
 }
 
+function getUser(userId) {
+  return slackUsers[userId];
+}
+
 module.exports = {
-  callJenkins: callJenkins,
+  callJenkins,
+  getUser,
 };

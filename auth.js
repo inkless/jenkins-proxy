@@ -1,5 +1,6 @@
 var authTokenMap = {
   '/create_pod': process.env.CREATE_POD_SLACK_AUTH,
+  '/create_pod_v2': process.env.CREATE_POD_V2_SLACK_AUTH,
   '/integration_test': process.env.INTEGRATION_TEST_SLACK_AUTH,
   '/tear_down': process.env.TEAR_DOWN_SLACK_AUTH,
 };
