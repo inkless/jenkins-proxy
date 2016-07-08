@@ -31,6 +31,7 @@ You might add something like this:
 
 ```
 0 0 * * * cd path_to_this_dir && node cron-jobs/fetch_user.js
+0 0 * * * cd path_to_this_dir && node cron-jobs/del_pods.js
 ```
 
 ##### 4. Init the app
