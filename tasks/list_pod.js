@@ -25,7 +25,7 @@ module.exports = (req, res) => {
 function getUserPodsInfo(pods, email) {
   const userPods = getPodsByEmail(pods, email);
   const userPodsInfo = userPods.map(pod => {
-    const param = cfParam2Obj(pod.Parameters);
+    const param = pod.Parameters;
     const createdAt = new Date(pod.CreationTime)
       .toISOString().replace(/T/, ' ').replace(/\..+/, '');
     const type = /-pod/.test(pod.StackName) ? 'new' : 'old';
@@ -54,7 +54,7 @@ function getPodsByEmail(pods, email) {
   }
 
   return pods.filter(pod => {
-    return _.find(pod.Parameters, { ParameterKey: 'Creator', ParameterValue: email });
+    return pod.Parameters.Creator === email;
   });
 }
 
@@ -71,10 +71,4 @@ function getPodUrl(podName, type) {
     manage: `https://${name}-partner.symphonycommerce.com`,
     site: `https://${name}-sites.symphonycommerce.com`,
   };
-}
-
-function cfParam2Obj(params) {
-  return _.fromPairs(params.map(param => {
-    return [param.ParameterKey, param.ParameterValue];
-  }));
 }

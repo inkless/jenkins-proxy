@@ -64,11 +64,20 @@ function fetchFromCfAndWriteToCache() {
     console.log('fetching stacks data from CloudFormation');
     cloudformation.describeStacks({}, (err, data) => {
       if (err) return reject(err);
-      const stacks = data.Stacks.filter(stack => {
-        return _.find(stack.Parameters, { ParameterKey: 'EnvName', ParameterValue: 'dev' });
+      const stacks = data.Stacks.map(stack => {
+        stack.Parameters = cfParam2Obj(stack.Parameters);
+        return stack;
+      }).filter(stack => {
+        return stack.Parameters.EnvName === 'dev';
       });
       fs.writeFileSync(podsCachePath, JSON.stringify(stacks));
       resolve(stacks);
     });
   });
+}
+
+function cfParam2Obj(params) {
+  return _.fromPairs(params.map(param => {
+    return [param.ParameterKey, param.ParameterValue];
+  }));
 }
