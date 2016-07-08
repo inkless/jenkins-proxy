@@ -4,3 +4,11 @@ podModel.insert(parseInt(Math.random() * 10000).toString(), Math.floor(Math.rand
   .then(console.log)
   .catch(console.log);
 
+// podModel.insert('joeFixLegoDef', 1)
+//   .then(console.log)
+//   .catch(console.log);
+//
+// podModel.insert('gaPluginUpdateChrisk2', 1)
+//   .then(console.log)
+//   .catch(console.log);
+

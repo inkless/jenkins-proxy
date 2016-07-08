@@ -12,6 +12,7 @@ const MINUTE_IN_MILLISECONDS = 60 * 1000;
 
 exports.callJenkins = qs => {
   return new Promise((resolve, reject) => {
+    console.log(`Calling jenkins: ${JSON.stringify(qs)}`);
     request.get({
       url: config.JENKINS_URL,
       qs,

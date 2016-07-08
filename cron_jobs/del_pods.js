@@ -56,6 +56,7 @@ function tearDown(podName) {
     token: process.env.TEAR_DOWN_TOKEN,
     pod_name: podName,
   };
-  return callJenkins(qs);
+  return podModel.remove(podName)
+    .then(() => utils.callJenkins(qs));
 }
 
