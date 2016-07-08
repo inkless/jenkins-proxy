@@ -1,9 +1,13 @@
+const fs = require('fs');
 const request = require('request');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 
-const slackUsers = require('./' + process.env.SLACK_USER_CACHE);
+const cwd = __dirname + '/';
+const podsCachePath = cwd + process.env.LIST_POD_CACHE;
 const jenkinsUrl = 'https://build.symphonycommerce.com/ci/buildByToken/buildWithParameters';
+const slackUsers = require(cwd + process.env.SLACK_USER_CACHE);
+
 const cloudformation = new AWS.CloudFormation({region: 'us-east-1'});
 
 function callJenkins(qs) {
@@ -32,14 +36,22 @@ function getUserEmail(userId) {
 
 function getPods() {
   return new Promise((resolve, reject) => {
-    cloudformation.describeStacks({}, (err, data) => {
-      if (err) {
-        return reject(err);
+    try {
+      const stat = fs.statSync(podsCachePath);
+      // minutes since last modified
+      if ((+new Date() - (+new Date(stat.mtime))) / 1000 / 60 > 5) {
+        _fetchFromCfAndWriteToCache()
+          .then(resolve)
+          .catch(reject);
+      } else {
+        console.log('get stacks from cache');
+        resolve(require(podsCachePath));
       }
-      resolve(data.Stacks.filter(stack => {
-        return _.find(stack.Parameters, { ParameterKey: 'EnvName', ParameterValue: 'dev' });
-      }));
-    });
+    } catch(e) {
+      _fetchFromCfAndWriteToCache()
+        .then(resolve)
+        .catch(reject);
+    }
   });
 }
 
@@ -47,6 +59,20 @@ function cfParam2Obj(params) {
   return _.fromPairs(params.map(param => {
     return [param.ParameterKey, param.ParameterValue];
   }));
+}
+
+function _fetchFromCfAndWriteToCache() {
+  return new Promise((resolve, reject) => {
+    console.log('fetching stacks data from CloudFormation');
+    cloudformation.describeStacks({}, (err, data) => {
+      if (err) return reject(err);
+      const stacks = data.Stacks.filter(stack => {
+        return _.find(stack.Parameters, { ParameterKey: 'EnvName', ParameterValue: 'dev' });
+      });
+      fs.writeFileSync(podsCachePath, JSON.stringify(stacks));
+      resolve(stacks);
+    });
+  });
 }
 
 module.exports = {
