@@ -1,6 +1,53 @@
 const utils = require('../utils');
 const _ = require('lodash');
 
+module.exports = (req, res) => {
+
+  let userEmail = utils.getUserEmail(req.query.user_id);
+  const overrideEmail = (req.query.text || '').trim();
+  // if specifying another persons email
+  if (overrideEmail && overrideEmail.toLowerCase() === 'all') {
+    userEmail = 'all';
+  }
+  else if (overrideEmail && overrideEmail.indexOf('@symphonycommerce.com') !== -1) {
+    userEmail = overrideEmail;
+  }
+
+  return utils.getPods()
+    .then(pods => {
+      res.status(200).send(getUserPodsInfo(pods, userEmail));
+    })
+    .catch(err => {
+      res.status(500).send(err);
+    });
+};
+
+function getUserPodsInfo(pods, email) {
+  const userPods = getPodsByEmail(pods, email);
+  const userPodsInfo = userPods.map(pod => {
+    const param = cfParam2Obj(pod.Parameters);
+    const createdAt = new Date(pod.CreationTime)
+      .toISOString().replace(/T/, ' ').replace(/\..+/, '');
+    const type = /-pod/.test(pod.StackName) ? 'new' : 'old';
+    const urls = getPodUrl(param.PodName, type);
+    const branch = `${param.GitBranch} <${urls.manage}|manage> <${urls.site}|site>`;
+
+    return {
+      podName: param.PodName,
+      type,
+      branch,
+      createdAt,
+      status: pod.StackStatus,
+    };
+  });
+  return userPodsInfo.reduce((sum, next) => {
+    const str = _.map(next, (val, key) => {
+      return `${key}: ${val}`;
+    }).join(' | ') + '\n';
+    return sum + str;
+  }, `Total: ${userPodsInfo.length}\n`);
+}
+
 function getPodsByEmail(pods, email) {
   if (email === 'all') {
     return pods;
@@ -26,46 +73,8 @@ function getPodUrl(podName, type) {
   };
 }
 
-module.exports = (req, res) => {
-
-  let userEmail = utils.getUserEmail(req.query.user_id);
-  const overrideEmail = (req.query.text || '').trim();
-  // if specifying another persons email
-  if (overrideEmail && overrideEmail.toLowerCase() === 'all') {
-    userEmail = 'all';
-  }
-  else if (overrideEmail && overrideEmail.indexOf('@symphonycommerce.com') !== -1) {
-    userEmail = overrideEmail;
-  }
-
-  return utils.getPods()
-    .then(pods => {
-      const userPods = getPodsByEmail(pods, userEmail);
-      const userPodsInfo = userPods.map(pod => {
-        const param = utils.cfParam2Obj(pod.Parameters);
-        const createdAt = new Date(pod.CreationTime)
-          .toISOString().replace(/T/, ' ').replace(/\..+/, '');
-        const type = /-pod/.test(pod.StackName) ? 'new' : 'old';
-        const urls = getPodUrl(param.PodName, type);
-        const branch = `${param.GitBranch} <${urls.manage}|manage> <${urls.site}|site>`;
-
-        return {
-          podName: param.PodName,
-          type,
-          branch,
-          createdAt,
-          status: pod.StackStatus,
-        };
-      });
-      const info = userPodsInfo.reduce((sum, next) => {
-        const str = _.map(next, (val, key) => {
-          return `${key}: ${val}`;
-        }).join(' | ') + '\n';
-        return sum + str;
-      }, `Total: ${userPodsInfo.length}\n`);
-      res.status(200).send(info);
-    })
-    .catch(err => {
-      res.status(500).send(err);
-    });
-};
+function cfParam2Obj(params) {
+  return _.fromPairs(params.map(param => {
+    return [param.ParameterKey, param.ParameterValue];
+  }));
+}

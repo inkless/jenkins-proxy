@@ -1,0 +1,7 @@
+CREATE TABLE pod_creation(
+  pod_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  pod_name TEXT UNIQUE NOT NULL,
+  created_at TEXT NOT NULL,
+  persist_day INTEGER NOT NULL
+);
+

@@ -1,14 +1,17 @@
 const camelCase = require('camelcase');
 const utils = require('../utils');
+const podModel = require('../model/pod_creation');
+
+const DEFAULT_PERSIST_DAY = 3;
 
 module.exports = (req, res) => {
 
-  const userId = req.query.user_id;
-  const user = utils.getUser(userId);
-  const creator = user.profile.email;
+  const creator = utils.getUserEmail(req.query.user_id);
   const text = req.query.text.trim().split(' ');
   const branch = text[0];
   const name = text[1] || camelCase(branch);
+  const persistDay = parseInt(text[2]) || DEFAULT_PERSIST_DAY;
+
   const qs = {
     job: process.env.CREATE_POD_JOB,
     token: process.env.CREATE_POD_TOKEN,
@@ -23,6 +26,8 @@ module.exports = (req, res) => {
   utils.callJenkins(qs)
     .then(() => {
       res.status(200).send('Create pod successful!');
+      podModel.insert(name, persistDay)
+        .catch(console.log);
     })
     .catch(err => {
       return res.status(200).send('Create pod failed:' + err);

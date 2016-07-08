@@ -5,15 +5,10 @@ const fs = require('fs');
 const path = require('path');
 const mkdirp = require('mkdirp');
 
-const apiUrl = 'https://slack.com/api/users.list';
-const workDir = path.join(__dirname, '..');
-const cacheFile = path.join(workDir, process.env.SLACK_USER_CACHE);
-const cacheDir = path.dirname(cacheFile);
-
-mkdirp.sync(cacheDir);
+const config = require('../config');
 
 request.get({
-  url: apiUrl,
+  url: config.SLACK_USER_LIST_API,
   qs: {
     token: process.env.SLACK_BOT_TOKEN,
   },
@@ -29,6 +24,6 @@ request.get({
     users[member.id] = member;
   });
 
-  fs.writeFileSync(cacheFile, JSON.stringify(users));
+  fs.writeFileSync(config.SLACK_USER_CACHE, JSON.stringify(users));
 });
 

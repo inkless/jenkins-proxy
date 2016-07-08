@@ -2,20 +2,18 @@ const fs = require('fs');
 const request = require('request');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
+const config = require('./config');
 
-const cwd = __dirname + '/';
-const podsCachePath = cwd + process.env.LIST_POD_CACHE;
-const jenkinsUrl = 'https://build.symphonycommerce.com/ci/buildByToken/buildWithParameters';
-const slackUsers = require(cwd + process.env.SLACK_USER_CACHE);
+const podsCachePath = config.LIST_POD_CACHE;
+const slackUsers = require(config.SLACK_USER_CACHE);
 
-const cloudformation = new AWS.CloudFormation({region: 'us-east-1'});
+const cloudformation = new AWS.CloudFormation({region: config.AWS_REGION});
 const MINUTE_IN_MILLISECONDS = 60 * 1000;
-const CACHE_TIME_IN_MINUTES = 5;
 
-function callJenkins(qs) {
+exports.callJenkins = qs => {
   return new Promise((resolve, reject) => {
     request.get({
-      url: jenkinsUrl,
+      url: config.JENKINS_URL,
       qs,
     }, (err, httpResponse, body) => {
       if (err) {
@@ -25,31 +23,29 @@ function callJenkins(qs) {
       }
     });
   });
-}
+};
 
-function getUser(userId) {
-  return slackUsers[userId];
-}
+exports.getUser = getUser;
 
-function getUserEmail(userId) {
+exports.getUserEmail = userId => {
   const user = getUser(userId);
   return user ? user.profile.email : "";
-}
+};
 
-function getPods() {
+exports.getPods = () => {
   return new Promise((resolve, reject) => {
     let needToFetch = true;
     try {
       const stat = fs.statSync(podsCachePath);
       // minutes since last modified
       if ((+new Date() - (+new Date(stat.mtime))) / MINUTE_IN_MILLISECONDS <
-        CACHE_TIME_IN_MINUTES) {
+        config.CACHE_TIME_IN_MINUTES) {
         needToFetch = false;
       }
     } catch(e) {}
 
     if (needToFetch) {
-      _fetchFromCfAndWriteToCache()
+      fetchFromCfAndWriteToCache()
         .then(resolve)
         .catch(reject);
     } else {
@@ -57,15 +53,13 @@ function getPods() {
       resolve(require(podsCachePath));
     }
   });
+};
+
+function getUser(userId) {
+  return slackUsers[userId];
 }
 
-function cfParam2Obj(params) {
-  return _.fromPairs(params.map(param => {
-    return [param.ParameterKey, param.ParameterValue];
-  }));
-}
-
-function _fetchFromCfAndWriteToCache() {
+function fetchFromCfAndWriteToCache() {
   return new Promise((resolve, reject) => {
     console.log('fetching stacks data from CloudFormation');
     cloudformation.describeStacks({}, (err, data) => {
@@ -78,11 +72,3 @@ function _fetchFromCfAndWriteToCache() {
     });
   });
 }
-
-module.exports = {
-  callJenkins,
-  getUser,
-  getUserEmail,
-  getPods,
-  cfParam2Obj,
-};

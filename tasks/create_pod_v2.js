@@ -1,18 +1,22 @@
 const camelCase = require('camelcase');
 const utils = require('../utils');
+const podModel = require('../model/pod_creation');
+
+const DEFAULT_SPOT_PRICE = 0.075;
+const MAX_SPOT_PRICE = 0.163;
+const DEFAULT_PERSIST_DAY = 3;
 
 module.exports = (req, res) => {
 
-  const userId = req.query.user_id;
-  const user = utils.getUser(userId);
-  const creator = user.profile.email;
+  const creator = utils.getUserEmail(req.query.user_id);
   const text = req.query.text.trim().split(' ');
   const branch = text[0];
   const name = text[1] || camelCase(branch);
-  const price = parseFloat(text[2]) || 0.075;
+  const price = parseFloat(text[2]) || DEFAULT_SPOT_PRICE;
+  const persistDay = parseInt(text[3]) || DEFAULT_PERSIST_DAY;
 
-  if (price > 0.163) {
-    return res.status(200).send('Spot price should not be greater than .163');
+  if (price > MAX_SPOT_PRICE) {
+    return res.status(200).send(`Spot price should not be greater than ${MAX_SPOT_PRICE}`);
   }
 
   const qs = {
@@ -27,12 +31,14 @@ module.exports = (req, res) => {
     cause: 'slack',
     public_ip: '127.0.0.1',
     private_dns: '127.0.0.1',
-    expires: 8,
+    expires: persistDay * 24,
   };
 
   utils.callJenkins(qs)
     .then(() => {
       res.status(200).send('Create pod successful!');
+      podModel.insert(name, persistDay)
+        .catch(console.log);
     })
     .catch(err => {
       return res.status(200).send('Create pod failed:' + err);
