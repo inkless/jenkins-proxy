@@ -32,7 +32,7 @@ module.exports = (req, res) => {
   const overrideEmail = (req.query.text || '').trim();
   // if specifying another persons email
   if (overrideEmail && overrideEmail.toLowerCase() === 'all') {
-    userEmail = '';
+    userEmail = 'all';
   }
   else if (overrideEmail && overrideEmail.indexOf('@symphonycommerce.com') !== -1) {
     userEmail = overrideEmail;
