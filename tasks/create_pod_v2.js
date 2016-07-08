@@ -9,9 +9,12 @@ const DEFAULT_PERSIST_DAY = 3;
 module.exports = (req, res) => {
 
   const creator = utils.getUserEmail(req.query.user_id);
-  const text = req.query.text.trim().split(' ');
-  const branch = text[0];
-  const name = text[1] || camelCase(branch);
+  const text = req.query.text.trim().split(/ +/);
+  if (!text[0]) {
+    return res.status(200).send('Invalid Parameters');
+  }
+  const branch = text[0].replace(/\//g, '.');
+  const name = (text[1] || camelCase(branch)).replace(/\./g, '');
   const price = parseFloat(text[2]) || DEFAULT_SPOT_PRICE;
   const persistDay = text[3] ?
     (
