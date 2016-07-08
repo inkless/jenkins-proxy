@@ -62,7 +62,7 @@ module.exports = (req, res) => {
           return `${key}: ${val}`;
         }).join(' | ') + '\n';
         return sum + str;
-      }, '');
+      }, `Total: ${userPodsInfo.length}\n`);
       res.status(200).send(info);
     })
     .catch(err => {
