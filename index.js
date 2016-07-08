@@ -15,6 +15,7 @@ app.get('/create_pod', require('./tasks/create_pod'));
 app.get('/create_pod_v2', require('./tasks/create_pod_v2'));
 app.get('/integration_test', require('./tasks/integration_test'));
 app.get('/tear_down', require('./tasks/tear_down'));
+app.get('/list_pod', require('./tasks/list_pod'));
 
 app.listen(PORT, function (err) {
   if (err) {
