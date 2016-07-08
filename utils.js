@@ -9,6 +9,8 @@ const jenkinsUrl = 'https://build.symphonycommerce.com/ci/buildByToken/buildWith
 const slackUsers = require(cwd + process.env.SLACK_USER_CACHE);
 
 const cloudformation = new AWS.CloudFormation({region: 'us-east-1'});
+const MINUTE_IN_MILLISECONDS = 60 * 1000;
+const CACHE_TIME_IN_MINUTES = 5;
 
 function callJenkins(qs) {
   return new Promise((resolve, reject) => {
@@ -36,21 +38,23 @@ function getUserEmail(userId) {
 
 function getPods() {
   return new Promise((resolve, reject) => {
+    let needToFetch = true;
     try {
       const stat = fs.statSync(podsCachePath);
       // minutes since last modified
-      if ((+new Date() - (+new Date(stat.mtime))) / 1000 / 60 > 5) {
-        _fetchFromCfAndWriteToCache()
-          .then(resolve)
-          .catch(reject);
-      } else {
-        console.log('get stacks from cache');
-        resolve(require(podsCachePath));
+      if ((+new Date() - (+new Date(stat.mtime))) / MINUTE_IN_MILLISECONDS <
+        CACHE_TIME_IN_MINUTES) {
+        needToFetch = false;
       }
-    } catch(e) {
+    } catch(e) {}
+
+    if (needToFetch) {
       _fetchFromCfAndWriteToCache()
         .then(resolve)
         .catch(reject);
+    } else {
+      console.log('get stacks from cache');
+      resolve(require(podsCachePath));
     }
   });
 }

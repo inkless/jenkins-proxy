@@ -7,7 +7,10 @@ var authTokenMap = {
 };
 
 module.exports = function (req, res, next) {
-  if (!req.query.token && req.url !== '/') {
+  // log the request
+  console.log(`Request: ${req.url}`);
+
+  if (!req.query.token && req.path !== '/') {
     return res.status(403).send('no token specified');
   }
 
@@ -15,14 +18,10 @@ module.exports = function (req, res, next) {
     return res.status(403).send('no user specified');
   }
 
-  if (req.query.token && authTokenMap[req.url]) {
-    if (authTokenMap[req.url] !== req.query.token) {
+  if (req.query.token && authTokenMap[req.path]) {
+    if (authTokenMap[req.path] !== req.query.token) {
       return res.status(403).send('invalid token');
     }
-  }
-
-  if (req.query.token && !req.query.text) {
-    // return res.status(400).send('invalid parameters');
   }
 
   next();
