@@ -12,7 +12,7 @@ module.exports = (req, res) => {
   let userEmail = utils.getUserEmail(req.query.user_id);
   const overrideEmail = (req.query.text || '').trim();
   // if specifying another persons email
-  if (overrideEmail && overrideEmail.indexOf('@symphonycommerce.com' !== -1)) {
+  if (overrideEmail && overrideEmail.indexOf('@symphonycommerce.com') !== -1) {
     userEmail = overrideEmail;
   }
 
@@ -31,7 +31,7 @@ module.exports = (req, res) => {
       const info = userPodsInfo.reduce((sum, next) => {
         const str = _.map(next, (val, key) => {
           return `${key}: ${val}`;
-        }).join(' | ') + '<br>';
+        }).join(' | ') + '\n';
         return sum + str;
       }, '');
       res.status(200).send(info);
