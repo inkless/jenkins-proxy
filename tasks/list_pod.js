@@ -28,7 +28,7 @@ function getUserPodsInfo(pods, email) {
     const param = pod.Parameters;
     const createdAt = new Date(pod.CreationTime)
       .toISOString().replace(/T/, ' ').replace(/\..+/, '');
-    const type = /-pod/.test(pod.StackName) ? 'new' : 'old';
+    const type = utils.getPodType(pod.StackName);
     const urls = getPodUrl(param.PodName, type);
     const branch = `${param.GitBranch} <${urls.manage}|manage> <${urls.site}|site>`;
 

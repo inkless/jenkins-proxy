@@ -3,6 +3,7 @@ const request = require('request');
 const AWS = require('aws-sdk');
 const _ = require('lodash');
 const config = require('./config');
+const podModel = require('./model/pod_creation');
 
 const podsCachePath = config.LIST_POD_CACHE;
 const slackUsers = require(config.SLACK_USER_CACHE);
@@ -10,7 +11,17 @@ const slackUsers = require(config.SLACK_USER_CACHE);
 const cloudformation = new AWS.CloudFormation({region: config.AWS_REGION});
 const MINUTE_IN_MILLISECONDS = 60 * 1000;
 
-exports.callJenkins = qs => {
+module.exports = {
+  callJenkins,
+  getUser,
+  getUserEmail,
+  getPods,
+  getPod,
+  getPodType,
+  tearDownByType,
+};
+
+function callJenkins(qs) {
   return new Promise((resolve, reject) => {
     console.log(`Calling jenkins: ${JSON.stringify(qs)}`);
     request.get({
@@ -24,16 +35,18 @@ exports.callJenkins = qs => {
       }
     });
   });
-};
+}
 
-exports.getUser = getUser;
+function getUser(userId) {
+  return slackUsers[userId];
+}
 
-exports.getUserEmail = userId => {
+function getUserEmail(userId) {
   const user = getUser(userId);
   return user ? user.profile.email : "";
-};
+}
 
-exports.getPods = () => {
+function getPods() {
   return new Promise((resolve, reject) => {
     let needToFetch = true;
     try {
@@ -54,10 +67,38 @@ exports.getPods = () => {
       resolve(require(podsCachePath));
     }
   });
-};
+}
 
-function getUser(userId) {
-  return slackUsers[userId];
+function getPod(podName) {
+  return getPods()
+    .then(pods => {
+      return _.find(pods, {
+        Parameters: {
+          PodName: podName,
+        },
+      });
+    });
+}
+
+function getPodType(stackName) {
+  return /-pod/.test(stackName) ? 'new' : 'old';
+}
+
+function tearDownByType(podName, stackName) {
+  const qs = {
+    pod_name: podName,
+  };
+  if (getPodType(stackName) === 'old') {
+    qs.job = process.env.TEAR_DOWN_JOB;
+    qs.token = process.env.TEAR_DOWN_TOKEN;
+  } else {
+    qs.job = process.env.TEAR_DOWN_V2_JOB;
+    qs.token = process.env.TEAR_DOWN_V2_TOKEN;
+    qs.ansible_branch = 'chris/role/new_pods';
+  }
+
+  return callJenkins(qs)
+    .then(() => podModel.remove(podName));
 }
 
 function fetchFromCfAndWriteToCache() {

@@ -31,6 +31,7 @@ function getValidPods(podsToCheck, indexdPods) {
       podName: pod.pod_name,
       createdAt: indexdPods[pod.pod_name].CreationTime,
       persistDay: pod.persist_day,
+      stackName: indexdPods[pod.pod_name].StackName,
     };
   });
 }
@@ -45,18 +46,9 @@ function getDelPods(pods) {
 
 function delPods(pods) {
   return pods.reduce((promise, pod) => {
-    return promise.then(() => tearDown(pod.podName));
+    return promise.then(() => {
+      console.log(`Teardown ${pod.podName}`);
+      return utils.tearDownByType(pod.podName, pod.stackName);
+    });
   }, Promise.resolve());
 }
-
-function tearDown(podName) {
-  console.log(`Teardown ${podName}`);
-  const qs = {
-    job: process.env.TEAR_DOWN_JOB,
-    token: process.env.TEAR_DOWN_TOKEN,
-    pod_name: podName,
-  };
-  return podModel.remove(podName)
-    .then(() => utils.callJenkins(qs));
-}
-
