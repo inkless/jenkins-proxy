@@ -10,7 +10,13 @@ module.exports = (req, res) => {
   const text = req.query.text.trim().split(' ');
   const branch = text[0];
   const name = text[1] || camelCase(branch);
-  const persistDay = parseInt(text[2]) || DEFAULT_PERSIST_DAY;
+  const persistDay = text[2] ?
+    (
+      isNaN(parseInt(text[2])) ?
+      DEFAULT_PERSIST_DAY :
+      parseInt(text[2])
+    ) :
+    DEFAULT_PERSIST_DAY;
 
   const qs = {
     job: process.env.CREATE_POD_JOB,

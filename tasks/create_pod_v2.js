@@ -13,7 +13,13 @@ module.exports = (req, res) => {
   const branch = text[0];
   const name = text[1] || camelCase(branch);
   const price = parseFloat(text[2]) || DEFAULT_SPOT_PRICE;
-  const persistDay = parseInt(text[3]) || DEFAULT_PERSIST_DAY;
+  const persistDay = text[3] ?
+    (
+      isNaN(parseInt(text[3])) ?
+      DEFAULT_PERSIST_DAY :
+      parseInt(text[3])
+    ) :
+    DEFAULT_PERSIST_DAY;
 
   if (price > MAX_SPOT_PRICE) {
     return res.status(200).send(`Spot price should not be greater than ${MAX_SPOT_PRICE}`);
