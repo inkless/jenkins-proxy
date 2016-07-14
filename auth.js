@@ -9,6 +9,7 @@ var authTokenMap = {
 module.exports = function (req, res, next) {
   // log the request
   console.log(`Request: ${req.url}`);
+  console.log(`Body: ${JSON.stringify(req.body)}`);
 
   if (!req.body.token && req.path !== '/') {
     return res.status(403).send('no token specified');
