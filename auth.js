@@ -10,16 +10,16 @@ module.exports = function (req, res, next) {
   // log the request
   console.log(`Request: ${req.url}`);
 
-  if (!req.query.token && req.path !== '/') {
+  if (!req.body.token && req.path !== '/') {
     return res.status(403).send('no token specified');
   }
 
-  if (!req.query.user_id) {
+  if (!req.body.user_id) {
     return res.status(403).send('no user specified');
   }
 
-  if (req.query.token && authTokenMap[req.path]) {
-    if (authTokenMap[req.path] !== req.query.token) {
+  if (req.body.token && authTokenMap[req.path]) {
+    if (authTokenMap[req.path] !== req.body.token) {
       return res.status(403).send('invalid token');
     }
   }

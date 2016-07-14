@@ -1,11 +1,11 @@
 const utils = require('../utils');
 
 module.exports = (req, res) => {
-  if (!req.query.text) {
+  if (!req.body.text) {
     return res.status(400).send('invalid parameters');
   }
 
-  const podName = req.query.text.trim();
+  const podName = req.body.text.trim();
   utils.getPod(podName)
     .then(pod => {
       if (!pod) {

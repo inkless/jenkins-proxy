@@ -6,8 +6,8 @@ const DEFAULT_PERSIST_DAY = 3;
 
 module.exports = (req, res) => {
 
-  const creator = utils.getUserEmail(req.query.user_id);
-  const text = req.query.text.trim().split(/ +/);
+  const creator = utils.getUserEmail(req.body.user_id);
+  const text = req.body.text.trim().split(/ +/);
   if (!text[0]) {
     return res.status(200).send('Invalid Parameters');
   }

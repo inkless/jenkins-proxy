@@ -3,8 +3,8 @@ const _ = require('lodash');
 
 module.exports = (req, res) => {
 
-  let userEmail = utils.getUserEmail(req.query.user_id);
-  const overrideEmail = (req.query.text || '').trim();
+  let userEmail = utils.getUserEmail(req.body.user_id);
+  const overrideEmail = (req.body.text || '').trim();
   // if specifying another persons email
   if (overrideEmail && overrideEmail.toLowerCase() === 'all') {
     userEmail = 'all';
