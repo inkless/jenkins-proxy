@@ -43,7 +43,7 @@ function getUser(userId) {
 
 function getUserEmail(userId) {
   const user = getUser(userId);
-  return user ? user.profile.email : "";
+  return user ? user.profile.email : '';
 }
 
 function getPods() {
@@ -56,7 +56,10 @@ function getPods() {
         config.CACHE_TIME_IN_MINUTES) {
         needToFetch = false;
       }
-    } catch(e) {}
+    } catch(e) {
+      /* eslint-disable no-empty */
+      /* eslint-enable no-empty */
+    }
 
     if (needToFetch) {
       fetchFromCfAndWriteToCache()
@@ -113,6 +116,7 @@ function fetchFromCfAndWriteToCache() {
         return stack.Parameters.EnvName === 'dev';
       });
       fs.writeFileSync(podsCachePath, JSON.stringify(stacks));
+      delete require.cache[require.resolve(podsCachePath)];
       resolve(stacks);
     });
   });

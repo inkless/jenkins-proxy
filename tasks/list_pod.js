@@ -40,6 +40,7 @@ function getUserPodsInfo(pods, email) {
       status: pod.StackStatus,
     };
   });
+  console.log('Returning userPodsInfo.length: ', userPodsInfo.length);
   return userPodsInfo.reduce((sum, next) => {
     const str = _.map(next, (val, key) => {
       return `${key}: ${val}`;
