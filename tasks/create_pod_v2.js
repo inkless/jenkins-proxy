@@ -1,8 +1,7 @@
 const camelCase = require('camelcase');
 const utils = require('../utils');
-const podModel = require('../model/pod_creation');
 
-const DEFAULT_SPOT_PRICE = 0.075;
+const DEFAULT_SPOT_PRICE = 0;
 const MAX_SPOT_PRICE = 0.163;
 const DEFAULT_PERSIST_HOURS = 8;
 
